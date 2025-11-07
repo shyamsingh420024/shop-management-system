@@ -1,0 +1,104 @@
+// This is your Prisma schema file
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------
+// 3. YOUR MODELS (These are your database tables)
+// ---------------------------------------------------
+
+model Shop {
+  id              String   @id @default(cuid())
+  name            String
+  owner           String
+  phone           String
+  address         String
+  monthlyRent     Decimal  @db.Decimal(10, 2) // <-- CHANGED
+  electricityRate Decimal  @db.Decimal(10, 2) // <-- CHANGED
+  createdAt       DateTime @default(now())
+
+  rentStartDate            DateTime @default(now())
+  lastRentUpdate           DateTime @default(now())
+  yearlyIncreasePercentage Decimal  @db.Decimal(10, 2) // <-- CHANGED
+
+  bills    Bill[]
+  payments Payment[]
+}
+
+model Bill {
+  id         String   @id @default(cuid())
+  billNumber String   @unique
+  billDate   DateTime
+  dueDate    DateTime
+  total      Decimal  @db.Decimal(10, 2) // <-- CHANGED
+  paid       Decimal  @db.Decimal(10, 2) // <-- CHANGED
+  remaining  Decimal  @db.Decimal(10, 2) // <-- CHANGED
+  status     String
+  createdAt  DateTime @default(now())
+  items      Json?
+
+  shopId   String
+  shop     Shop     @relation(fields: [shopId], references: [id])
+  payments Payment[]
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  amount    Decimal  @db.Decimal(10, 2) // <-- CHANGED
+  method    String
+  date      DateTime
+  isAdvance Boolean
+  createdAt DateTime @default(now())
+  reference String?
+  notes     String?
+
+  shopId String
+  shop   Shop   @relation(fields: [shopId], references: [id])
+  billId String?
+  bill   Bill?   @relation(fields: [billId], references: [id])
+}
+
+model FamilyMember {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  relation  String
+  isActive  Boolean
+  createdAt DateTime @default(now())
+}
+
+model FamilyExpense {
+  id            String   @id @default(cuid())
+  category      String
+  description   String?
+  amount        Decimal  @db.Decimal(10, 2) // <-- CHANGED
+  date          DateTime
+  paidBy        String
+  paymentMethod String
+  createdAt     DateTime @default(now())
+}
+
+model FamilyIncome {
+  id            String   @id @default(cuid())
+  source        String
+  description   String?
+  amount        Decimal  @db.Decimal(10, 2) // <-- CHANGED
+  date          DateTime
+  receivedBy    String
+  paymentMethod String
+  createdAt     DateTime @default(now())
+}
+
+model BankDeposit {
+  id          String   @id @default(cuid())
+  amount      Decimal  @db.Decimal(10, 2) // <-- CHANGED
+  fromAccount String
+  bankName    String
+  description String?
+  date        DateTime
+  createdAt   DateTime @default(now())
+}
